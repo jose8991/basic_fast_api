@@ -1,34 +1,12 @@
 #importamos las librerias que vamos a utilizar
 #FastAPI es el framework que vamos a utilizar, Path y Query es para validar los parametros que se le pasan a las rutas
-from fastapi import APIRouter,Path,Query,HTTPException
-#BaseModel es para crear las clases que se van a utilizar para crear las rifas
-from pydantic import BaseModel, Field
-#Optional es para que el atributo titulo sea opcional en los base model
-from typing import Optional
+from fastapi import APIRouter,Path,Query,HTTPException,Depends
+from models.rifas import Rifa
+from tools.jwt_auntentication import Autenticacion
+
 
 #creamos la aplicacion de fastapi
 router= APIRouter(prefix="/rifa",tags=["Rifas"])
-
-
-#la clase rifa es la que se va a utilizar para crear las rifas donde va a tener los atributos de la rifa que son
-#id,estado,nombre de la persona a la quie se le asigno,precioTotal y titulo que es opcional
-class Rifa(BaseModel):
-    id: int = Field(ge=1, le=9999, description="El id debe ser mayor a 0 y menor a 10000")
-    estado: str
-    nombre: str = Field( default="mi pelicula",min_length=3, max_length=5)
-    #es opcional
-    titulo: Optional[str] = None
-    precioTotal: float = Field(ge=1, le=9999, description="El precio debe ser mayor a 10000 y menor a 1000000")
-    class Config:
-        schema_extra = {
-            "example": {
-                "id": 1,
-                "estado": "separada",
-                "nombre": "Juan",
-                "titulo": "Rifa de un auto",
-                "precioTotal": 1000.0
-            }
-        }
 
     
 listaRifas = [
@@ -42,7 +20,7 @@ listaRifas = [
 
 
 #la ruta de la api que va a mostrar todas las rifas
-@router.get("/total",response_model=list[Rifa])
+@router.get("/total",response_model=list[Rifa],dependencies=[Depends(Autenticacion)])
 async def getRifas():
     return listaRifas
 
